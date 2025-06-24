@@ -1,7 +1,7 @@
 import "dotenv/config";
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
-import { setupVite, serveStatic, log } from "./vite";
+import { log } from "./vite";
 import { initializeDatabase } from "./init-db";
 import helmet from "helmet";
 import compression from "compression";
@@ -87,8 +87,17 @@ app.use((req, res, next) => {
   // setting up all the other routes so the catch-all route
   // doesn't interfere with the other routes
   if (app.get("env") === "development") {
-    await setupVite(app, server);
+    try {
+      const { setupVite } = await import("./vite");
+      await setupVite(app, server);
+    } catch (error) {
+      log("Failed to setup Vite development server");
+      console.error(error);
+      const { serveStatic } = await import("./vite");
+      serveStatic(app);
+    }
   } else {
+    const { serveStatic } = await import("./vite");
     serveStatic(app);
   }
 
