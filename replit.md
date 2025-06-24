@@ -100,6 +100,12 @@ The application uses four main tables:
 
 Changelog:
 - June 24, 2025. Initial setup
+- June 24, 2025. Added comprehensive CMS with authentication:
+  * Created secure login system with credentials (admin/cms2024!)
+  * Implemented full CRUD operations for questions and contests
+  * Added real-time updates with automatic polling
+  * Protected all CMS routes with bearer token authentication
+  * Removed public access to CMS from landing page
 
 ## User Preferences
 

@@ -98,13 +98,16 @@ export default function CMS() {
       const token = localStorage.getItem('cms_token');
       const url = data.isEdit ? `/api/cms/questions/${data.id}` : '/api/cms/questions';
       const method = data.isEdit ? 'PUT' : 'POST';
-      return apiRequest(url, { 
-        method, 
-        body: JSON.stringify(data.question),
+      const response = await fetch(url, {
+        method,
         headers: {
+          'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
-        }
+        },
+        body: JSON.stringify(data.question)
       });
+      if (!response.ok) throw new Error('Failed to save question');
+      return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/cms/questions'] });
@@ -121,12 +124,14 @@ export default function CMS() {
   const deleteQuestionMutation = useMutation({
     mutationFn: async (id: number) => {
       const token = localStorage.getItem('cms_token');
-      return apiRequest(`/api/cms/questions/${id}`, { 
+      const response = await fetch(`/api/cms/questions/${id}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`
         }
       });
+      if (!response.ok) throw new Error('Failed to delete question');
+      return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/cms/questions'] });
@@ -143,13 +148,16 @@ export default function CMS() {
       const token = localStorage.getItem('cms_token');
       const url = data.isEdit ? `/api/cms/contests/${data.id}` : '/api/cms/contests';
       const method = data.isEdit ? 'PUT' : 'POST';
-      return apiRequest(url, { 
-        method, 
-        body: JSON.stringify(data.contest),
+      const response = await fetch(url, {
+        method,
         headers: {
+          'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
-        }
+        },
+        body: JSON.stringify(data.contest)
       });
+      if (!response.ok) throw new Error('Failed to save contest');
+      return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/cms/contests'] });

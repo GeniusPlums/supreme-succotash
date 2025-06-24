@@ -21,17 +21,24 @@ export default function CMSLogin() {
     setError('');
 
     try {
-      const response = await apiRequest('/api/cms/login', {
+      const response = await fetch('/api/cms/login', {
         method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
         body: JSON.stringify({ username, password })
       });
 
-      if (response.success) {
-        localStorage.setItem('cms_token', response.token);
+      const data = await response.json();
+
+      if (response.ok && data.success) {
+        localStorage.setItem('cms_token', data.token);
         setLocation('/cms');
+      } else {
+        setError(data.error || 'Invalid credentials');
       }
     } catch (error: any) {
-      setError(error.message || 'Invalid credentials');
+      setError('Login failed. Please try again.');
     } finally {
       setIsLoading(false);
     }
