@@ -1,7 +1,7 @@
 import "dotenv/config";
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
-import { log } from "./vite";
+import { log, serveStatic } from "./vite";
 import { initializeDatabase } from "./init-db";
 import helmet from "helmet";
 import compression from "compression";
@@ -88,16 +88,14 @@ app.use((req, res, next) => {
   // doesn't interfere with the other routes
   if (app.get("env") === "development") {
     try {
-      const { setupVite } = await import("./vite");
-      await setupVite(app, server);
+      const { setupViteDev } = await import("./vite-dev");
+      await setupViteDev(app, server);
     } catch (error) {
       log("Failed to setup Vite development server");
       console.error(error);
-      const { serveStatic } = await import("./vite");
       serveStatic(app);
     }
   } else {
-    const { serveStatic } = await import("./vite");
     serveStatic(app);
   }
 
