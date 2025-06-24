@@ -16,10 +16,11 @@ AuctoGames is a sports opinion contest platform built as a full-stack web applic
 
 ### Backend Architecture
 - **Runtime**: Node.js with Express.js server
-- **Database**: PostgreSQL with Drizzle ORM
+- **Database**: PostgreSQL with Drizzle ORM (migrated from in-memory storage)
 - **Database Provider**: Neon Database (@neondatabase/serverless)
 - **Session Management**: Session-based authentication using localStorage
 - **API Design**: RESTful API endpoints
+- **Data Persistence**: Full PostgreSQL integration with automatic initialization
 
 ### Development Environment
 - **Platform**: Replit with Node.js 20, Web, and PostgreSQL 16 modules
