@@ -241,7 +241,13 @@ export class MemStorage implements IStorage {
 
   async createContest(contest: InsertContest): Promise<Contest> {
     const id = this.contestIdCounter++;
-    const newContest: Contest = { ...contest, id, totalParticipants: 0 };
+    const newContest: Contest = { 
+      ...contest, 
+      id, 
+      totalParticipants: 0,
+      description: contest.description || null,
+      isActive: contest.isActive !== undefined ? contest.isActive : true
+    };
     this.contests.set(id, newContest);
     return newContest;
   }
@@ -293,6 +299,7 @@ export class MemStorage implements IStorage {
     const newParticipant: Participant = { 
       ...participant, 
       id, 
+      selections: null,
       totalPoints: 0,
       rank: null,
       submittedAt: null

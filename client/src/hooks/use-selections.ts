@@ -46,6 +46,12 @@ export function useSelections() {
     }));
   };
 
+  const setQuestionChoice = (questionId: number, option: 'A' | 'B' | 'C') => {
+    if (selectedQuestions.includes(questionId)) {
+      setQuestionChoices(prev => ({ ...prev, [questionId]: option }));
+    }
+  };
+
   const clearSelections = () => {
     setSelectedQuestions([]);
     setQuestionChoices({});
@@ -57,6 +63,7 @@ export function useSelections() {
     selectionCount,
     canSubmit,
     toggleSelection,
+    setQuestionChoice,
     getProgressWidth,
     getSelectedQuestionsWithChoices,
     clearSelections

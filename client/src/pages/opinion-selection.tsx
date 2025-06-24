@@ -11,7 +11,9 @@ export default function OpinionSelection() {
   const { data: contest } = useContest();
   const { 
     selectedQuestions, 
+    questionChoices,
     toggleSelection, 
+    setQuestionChoice,
     canSubmit, 
     selectionCount,
     getProgressWidth 
@@ -36,6 +38,15 @@ export default function OpinionSelection() {
   const handleSubmit = () => {
     if (canSubmit) {
       setLocation('/confirmation');
+    }
+  };
+
+  const handleOptionClick = (questionId: number, option: 'A' | 'B' | 'C', e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (selectedQuestions.includes(questionId)) {
+      setQuestionChoice(questionId, option);
+    } else if (selectedQuestions.length < 5) {
+      toggleSelection(questionId, option);
     }
   };
 
@@ -83,53 +94,113 @@ export default function OpinionSelection() {
       <div className="p-4 pb-24">
         {/* Opinion Cards */}
         <div className="space-y-4">
-          {questions?.map((question) => (
+          {questions?.map((question) => {
+            const isSelected = selectedQuestions.includes(question.id);
+            const selectedOption = questionChoices[question.id];
+            
+            return (
             <div
               key={question.id}
-              onClick={() => toggleSelection(question.id)}
-              className={`bg-white rounded-xl p-4 shadow-sm border hover:shadow-md transition-all duration-200 cursor-pointer ${
-                selectedQuestions.includes(question.id) 
-                  ? 'selection-glow bg-blue-50' 
-                  : 'hover:border-primary/30'
+              className={`bg-white rounded-xl p-4 shadow-sm border transition-all duration-200 ${
+                isSelected 
+                  ? 'selection-glow bg-blue-50 border-primary' 
+                  : 'hover:border-primary/30 hover:shadow-md'
               }`}
             >
               <div className="flex items-start justify-between mb-3">
                 <div className="flex-1">
                   <div className="flex items-center mb-2">
-                    <span className="bg-gray-100 text-gray-600 text-xs font-medium px-2 py-1 rounded-full mr-2">
+                    <span className={`text-xs font-medium px-2 py-1 rounded-full mr-2 ${
+                      isSelected ? 'bg-primary text-white' : 'bg-gray-100 text-gray-600'
+                    }`}>
                       Q{question.questionNumber}
                     </span>
                     <span className="text-xs text-gray-500">{question.category}</span>
+                    {isSelected && selectedOption && (
+                      <span className="ml-2 bg-green-100 text-green-800 text-xs font-medium px-2 py-1 rounded-full">
+                        Your pick: {selectedOption}
+                      </span>
+                    )}
                   </div>
                   <h3 className="font-semibold text-gray-800 text-sm leading-relaxed">
                     {question.questionText}
                   </h3>
                 </div>
-                <div className={`ml-3 transition-opacity duration-200 ${
-                  selectedQuestions.includes(question.id) ? 'opacity-100' : 'opacity-0'
-                }`}>
-                  <div className="w-6 h-6 bg-primary rounded-full flex items-center justify-center">
-                    <Check className="w-4 h-4 text-white" />
-                  </div>
+                <div className="ml-3 flex flex-col items-center space-y-1">
+                  {isSelected ? (
+                    <>
+                      <div className="w-6 h-6 bg-primary rounded-full flex items-center justify-center">
+                        <Check className="w-4 h-4 text-white" />
+                      </div>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          toggleSelection(question.id);
+                        }}
+                        className="text-xs text-red-500 hover:text-red-700 font-medium"
+                      >
+                        Remove
+                      </button>
+                    </>
+                  ) : (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (selectedQuestions.length < 5) {
+                          toggleSelection(question.id, 'B');
+                        } else {
+                          alert('You can only select 5 questions maximum!');
+                        }
+                      }}
+                      className={`w-6 h-6 border-2 border-dashed rounded-full flex items-center justify-center transition-colors ${
+                        selectedQuestions.length < 5 
+                          ? 'border-primary text-primary hover:bg-primary hover:text-white' 
+                          : 'border-gray-300 text-gray-300 cursor-not-allowed'
+                      }`}
+                    >
+                      +
+                    </button>
+                  )}
                 </div>
               </div>
               
               <div className="space-y-2">
-                <div className="option flex items-center justify-between p-2 bg-gray-50 rounded-lg hover:bg-blue-50 transition-colors duration-150">
-                  <span className="text-sm font-medium text-gray-700">A. {question.optionA}</span>
-                  <span className="text-xs text-gray-500 font-medium">{formatVotes(question.votesA)}</span>
-                </div>
-                <div className="option flex items-center justify-between p-2 bg-gray-50 rounded-lg hover:bg-blue-50 transition-colors duration-150">
-                  <span className="text-sm font-medium text-gray-700">B. {question.optionB}</span>
-                  <span className="text-xs text-gray-500 font-medium">{formatVotes(question.votesB)}</span>
-                </div>
-                <div className="option flex items-center justify-between p-2 bg-gray-50 rounded-lg hover:bg-blue-50 transition-colors duration-150">
-                  <span className="text-sm font-medium text-gray-700">C. {question.optionC}</span>
-                  <span className="text-xs text-gray-500 font-medium">{formatVotes(question.votesC)}</span>
-                </div>
+                {(['A', 'B', 'C'] as const).map((option) => {
+                  const isQuestionSelected = selectedQuestions.includes(question.id);
+                  const isOptionSelected = isQuestionSelected && questionChoices[question.id] === option;
+                  const optionText = option === 'A' ? question.optionA : option === 'B' ? question.optionB : question.optionC;
+                  const optionVotes = option === 'A' ? question.votesA : option === 'B' ? question.votesB : question.votesC;
+                  
+                  return (
+                    <div 
+                      key={option}
+                      onClick={(e) => handleOptionClick(question.id, option, e)}
+                      className={`option flex items-center justify-between p-3 rounded-lg transition-all duration-200 cursor-pointer ${
+                        isOptionSelected 
+                          ? 'bg-primary text-white shadow-md' 
+                          : isQuestionSelected
+                            ? 'bg-blue-50 hover:bg-blue-100 border border-blue-200'
+                            : 'bg-gray-50 hover:bg-blue-50'
+                      }`}
+                    >
+                      <span className={`text-sm font-medium flex items-center ${
+                        isOptionSelected ? 'text-white' : 'text-gray-700'
+                      }`}>
+                        {isOptionSelected && <Check className="w-4 h-4 mr-2" />}
+                        {option}. {optionText}
+                      </span>
+                      <span className={`text-xs font-medium ${
+                        isOptionSelected ? 'text-blue-100' : 'text-gray-500'
+                      }`}>
+                        {formatVotes(optionVotes)}
+                      </span>
+                    </div>
+                  );
+                })}
               </div>
             </div>
-          ))}
+            );
+          })}
         </div>
       </div>
 
