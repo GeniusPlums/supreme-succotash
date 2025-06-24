@@ -12,7 +12,7 @@ COPY package*.json ./
 
 # Install dependencies
 FROM base AS deps
-RUN npm ci --only=production && npm cache clean --force
+RUN npm ci --omit=dev && npm cache clean --force
 
 # Build stage
 FROM base AS build
