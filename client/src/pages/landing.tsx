@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { useLocation } from "wouter";
-import { Trophy, Clock, Medal, Users, TrendingUp, Play } from "lucide-react";
+import { Trophy, Clock, Medal, Users, TrendingUp, Play, Settings } from "lucide-react";
 
 export default function Landing() {
   const [, setLocation] = useLocation();
