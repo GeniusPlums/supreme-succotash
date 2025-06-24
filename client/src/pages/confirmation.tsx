@@ -14,6 +14,22 @@ export default function Confirmation() {
   const { data: contest } = useContest();
   const { selectedQuestions, getSelectedQuestionsWithChoices, clearSelections } = useSelections();
 
+  // Early return for validation - this prevents the hook order issues
+  if (selectedQuestions.length !== 5) {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-6">
+        <div className="text-center">
+          <AlertTriangle className="w-12 h-12 text-warning mx-auto mb-4" />
+          <p className="text-gray-600 mb-4">You must select exactly 5 questions</p>
+          <Button onClick={() => setLocation('/opinion-selection')} variant="outline">
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back to Selection
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
   const { data: questions } = useQuery<Question[]>({
     queryKey: [`/api/contest/${contest?.id}/questions`],
     enabled: !!contest?.id,
@@ -25,21 +41,24 @@ export default function Confirmation() {
       localStorage.setItem('sessionId', sessionId);
 
       // First join contest if not already joined
-      await apiRequest('POST', `/api/contest/${contest?.id}/join`, {
-        sessionId,
-        name: `Player_${Math.random().toString(36).substr(2, 6)}`
+      const joinResponse = await apiRequest(`/api/contest/${contest?.id}/join`, {
+        method: 'POST',
+        body: JSON.stringify({
+          sessionId,
+          name: `Player_${Math.random().toString(36).substr(2, 6)}`
+        })
       });
-
-      // Get participant info
-      const participantRes = await apiRequest('GET', `/api/participant/session/${sessionId}`);
-      const participant = await participantRes.json();
+      const participant = await joinResponse.json();
 
       // Submit selections
-      await apiRequest('POST', `/api/participant/${participant.id}/selections`, {
-        selections: selections.map(s => ({
-          questionId: s.questionId,
-          selectedOption: s.selectedOption
-        }))
+      await apiRequest(`/api/participant/${participant.id}/selections`, {
+        method: 'POST',
+        body: JSON.stringify({
+          selections: selections.map(s => ({
+            questionId: s.questionId,
+            selectedOption: s.selectedOption
+          }))
+        })
       });
 
       return participant;

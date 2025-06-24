@@ -38,6 +38,8 @@ export default function OpinionSelection() {
   const handleSubmit = () => {
     if (canSubmit) {
       setLocation('/confirmation');
+    } else {
+      alert(`Please select exactly 5 questions. You have selected ${selectionCount}.`);
     }
   };
 

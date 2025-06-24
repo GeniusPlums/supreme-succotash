@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 interface Selection {
   questionId: number;
@@ -6,8 +6,33 @@ interface Selection {
 }
 
 export function useSelections() {
-  const [selectedQuestions, setSelectedQuestions] = useState<number[]>([]);
-  const [questionChoices, setQuestionChoices] = useState<Record<number, 'A' | 'B' | 'C'>>({});
+  // Initialize state with localStorage data
+  const [selectedQuestions, setSelectedQuestions] = useState<number[]>(() => {
+    try {
+      const saved = localStorage.getItem('selectedQuestions');
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
+  
+  const [questionChoices, setQuestionChoices] = useState<Record<number, 'A' | 'B' | 'C'>>(() => {
+    try {
+      const saved = localStorage.getItem('questionChoices');
+      return saved ? JSON.parse(saved) : {};
+    } catch {
+      return {};
+    }
+  });
+
+  // Save state to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem('selectedQuestions', JSON.stringify(selectedQuestions));
+  }, [selectedQuestions]);
+
+  useEffect(() => {
+    localStorage.setItem('questionChoices', JSON.stringify(questionChoices));
+  }, [questionChoices]);
 
   const MAX_SELECTIONS = 5;
 
@@ -55,6 +80,8 @@ export function useSelections() {
   const clearSelections = () => {
     setSelectedQuestions([]);
     setQuestionChoices({});
+    localStorage.removeItem('selectedQuestions');
+    localStorage.removeItem('questionChoices');
   };
 
   return {
