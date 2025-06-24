@@ -182,9 +182,6 @@ export default function CMS() {
       optionA: formData.get('optionA') as string,
       optionB: formData.get('optionB') as string,
       optionC: formData.get('optionC') as string,
-      votesA: parseInt(formData.get('votesA') as string) || 30000,
-      votesB: parseInt(formData.get('votesB') as string) || 50000,
-      votesC: parseInt(formData.get('votesC') as string) || 70000,
     };
 
     questionMutation.mutate({
@@ -205,7 +202,6 @@ export default function CMS() {
       startTime: new Date(formData.get('startTime') as string),
       endTime: new Date(formData.get('endTime') as string),
       isActive: formData.get('isActive') === 'true',
-      totalParticipants: parseInt(formData.get('totalParticipants') as string) || 0,
     };
 
     contestMutation.mutate({

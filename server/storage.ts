@@ -76,7 +76,7 @@ export class DatabaseStorage implements IStorage {
   async updateContestParticipants(contestId: number, increment: number): Promise<void> {
     // Get current participant count
     const participantCount = await db
-      .select({ count: db.count() })
+      .select({ count: db.$count(participants) })
       .from(participants)
       .where(eq(participants.contestId, contestId));
     
