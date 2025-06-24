@@ -12,7 +12,8 @@ COPY package*.json ./
 
 # Install dependencies
 FROM base AS deps
-RUN npm ci --omit=dev && npm cache clean --force
+# Explicitly exclude optional dependencies to prevent vite installation
+RUN npm ci --omit=dev --omit=optional && npm cache clean --force
 
 # Build stage
 FROM base AS build
@@ -30,6 +31,10 @@ RUN apk add --no-cache dumb-init
 # Create app user for security
 RUN addgroup -g 1001 -S nodejs
 RUN adduser -S nextjs -u 1001
+
+# Set production environment variables
+ENV NODE_ENV=production
+ENV PORT=5000
 
 WORKDIR /app
 
