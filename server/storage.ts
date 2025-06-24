@@ -18,12 +18,17 @@ import { eq, desc } from "drizzle-orm";
 export interface IStorage {
   // Contest operations
   getActiveContest(): Promise<Contest | undefined>;
+  getAllContests(): Promise<Contest[]>;
   createContest(contest: InsertContest): Promise<Contest>;
+  updateContest(id: number, contest: Partial<InsertContest>): Promise<Contest>;
   updateContestParticipants(contestId: number, increment: number): Promise<void>;
 
   // Question operations
   getQuestionsByContest(contestId: number): Promise<Question[]>;
+  getAllQuestions(): Promise<Question[]>;
   createQuestion(question: InsertQuestion): Promise<Question>;
+  updateQuestion(id: number, question: Partial<InsertQuestion>): Promise<Question>;
+  deleteQuestion(id: number): Promise<void>;
   updateQuestionAnswers(questionId: number, correctAnswer: string): Promise<void>;
   bulkUpdateAnswers(answers: {questionId: number, correctAnswer: string}[]): Promise<void>;
 
@@ -45,6 +50,10 @@ export class DatabaseStorage implements IStorage {
   async getActiveContest(): Promise<Contest | undefined> {
     const [contest] = await db.select().from(contests).where(eq(contests.isActive, true));
     return contest || undefined;
+  }
+
+  async getAllContests(): Promise<Contest[]> {
+    return await db.select().from(contests).orderBy(desc(contests.id));
   }
 
   async createContest(contest: InsertContest): Promise<Contest> {

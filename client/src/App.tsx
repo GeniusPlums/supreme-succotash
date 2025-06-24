@@ -10,6 +10,7 @@ import OpinionSelection from "@/pages/opinion-selection";
 import Confirmation from "@/pages/confirmation";
 import Leaderboard from "@/pages/leaderboard";
 import Admin from "@/pages/admin";
+import CMS from "@/pages/cms";
 
 function Router() {
   return (
@@ -20,6 +21,7 @@ function Router() {
       <Route path="/confirmation" component={Confirmation} />
       <Route path="/leaderboard" component={Leaderboard} />
       <Route path="/admin" component={Admin} />
+      <Route path="/cms" component={CMS} />
       <Route component={NotFound} />
     </Switch>
   );
@@ -30,7 +32,7 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <Toaster />
-        <div className="max-w-md mx-auto bg-white min-h-screen shadow-lg">
+        <div className="w-full bg-white min-h-screen">
           <Router />
         </div>
       </TooltipProvider>
