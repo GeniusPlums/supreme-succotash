@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertParticipantSchema } from "@shared/schema";
+import { insertParticipantSchema, insertQuestionSchema, insertContestSchema } from "@shared/schema";
 import { z } from "zod";
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -128,6 +128,95 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({ success: true });
     } catch (error) {
       res.status(500).json({ error: "Failed to calculate scores" });
+    }
+  });
+
+  // CMS: Get all contests
+  app.get("/api/cms/contests", async (req, res) => {
+    try {
+      const contests = await storage.getAllContests();
+      res.json(contests);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch contests" });
+    }
+  });
+
+  // CMS: Create contest
+  app.post("/api/cms/contests", async (req, res) => {
+    try {
+      const contestData = insertContestSchema.parse(req.body);
+      const contest = await storage.createContest(contestData);
+      res.json(contest);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: "Invalid contest data", details: error.errors });
+      }
+      res.status(500).json({ error: "Failed to create contest" });
+    }
+  });
+
+  // CMS: Update contest
+  app.put("/api/cms/contests/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const contestData = insertContestSchema.partial().parse(req.body);
+      const contest = await storage.updateContest(id, contestData);
+      res.json(contest);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: "Invalid contest data", details: error.errors });
+      }
+      res.status(500).json({ error: "Failed to update contest" });
+    }
+  });
+
+  // CMS: Get all questions
+  app.get("/api/cms/questions", async (req, res) => {
+    try {
+      const questions = await storage.getAllQuestions();
+      res.json(questions);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch questions" });
+    }
+  });
+
+  // CMS: Create question
+  app.post("/api/cms/questions", async (req, res) => {
+    try {
+      const questionData = insertQuestionSchema.parse(req.body);
+      const question = await storage.createQuestion(questionData);
+      res.json(question);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: "Invalid question data", details: error.errors });
+      }
+      res.status(500).json({ error: "Failed to create question" });
+    }
+  });
+
+  // CMS: Update question
+  app.put("/api/cms/questions/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const questionData = insertQuestionSchema.partial().parse(req.body);
+      const question = await storage.updateQuestion(id, questionData);
+      res.json(question);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: "Invalid question data", details: error.errors });
+      }
+      res.status(500).json({ error: "Failed to update question" });
+    }
+  });
+
+  // CMS: Delete question
+  app.delete("/api/cms/questions/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      await storage.deleteQuestion(id);
+      res.json({ success: true });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to delete question" });
     }
   });
 

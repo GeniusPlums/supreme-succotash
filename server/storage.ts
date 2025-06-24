@@ -64,6 +64,15 @@ export class DatabaseStorage implements IStorage {
     return newContest;
   }
 
+  async updateContest(id: number, contest: Partial<InsertContest>): Promise<Contest> {
+    const [updatedContest] = await db
+      .update(contests)
+      .set(contest)
+      .where(eq(contests.id, id))
+      .returning();
+    return updatedContest;
+  }
+
   async updateContestParticipants(contestId: number, increment: number): Promise<void> {
     // Get current participant count
     const participantCount = await db
@@ -85,12 +94,32 @@ export class DatabaseStorage implements IStorage {
       .orderBy(questions.questionNumber);
   }
 
+  async getAllQuestions(): Promise<Question[]> {
+    return await db
+      .select()
+      .from(questions)
+      .orderBy(questions.questionNumber);
+  }
+
   async createQuestion(question: InsertQuestion): Promise<Question> {
     const [newQuestion] = await db
       .insert(questions)
       .values(question)
       .returning();
     return newQuestion;
+  }
+
+  async updateQuestion(id: number, question: Partial<InsertQuestion>): Promise<Question> {
+    const [updatedQuestion] = await db
+      .update(questions)
+      .set(question)
+      .where(eq(questions.id, id))
+      .returning();
+    return updatedQuestion;
+  }
+
+  async deleteQuestion(id: number): Promise<void> {
+    await db.delete(questions).where(eq(questions.id, id));
   }
 
   async updateQuestionAnswers(questionId: number, correctAnswer: string): Promise<void> {

@@ -1,4 +1,4 @@
-import { Switch, Route } from "wouter";
+import { Switch, Route, useLocation } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -27,14 +27,27 @@ function Router() {
   );
 }
 
+function AppWrapper() {
+  const [location] = useLocation();
+  const isCMSRoute = location === '/cms';
+  
+  return (
+    <div className="w-full bg-white min-h-screen">
+      <div 
+        className={`${isCMSRoute ? 'w-full' : 'max-w-md mx-auto shadow-lg'} bg-white min-h-screen`}
+      >
+        <Router />
+      </div>
+    </div>
+  );
+}
+
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <Toaster />
-        <div className="w-full bg-white min-h-screen">
-          <Router />
-        </div>
+        <AppWrapper />
       </TooltipProvider>
     </QueryClientProvider>
   );
