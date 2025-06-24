@@ -10,15 +10,14 @@ WORKDIR /app
 # Copy package files
 COPY package*.json ./
 
-# Install dependencies
+# Install production dependencies only (no dev, no optional)
 FROM base AS deps
-# Explicitly exclude optional dependencies to prevent vite installation
 RUN npm ci --omit=dev --omit=optional && npm cache clean --force
 
-# Build stage
+# Build stage - needs all dependencies including vite
 FROM base AS build
 COPY package*.json ./
-RUN npm ci
+RUN npm ci --include=optional
 COPY . .
 RUN npm run build
 
@@ -38,7 +37,7 @@ ENV PORT=5000
 
 WORKDIR /app
 
-# Copy built application and dependencies
+# Copy built application and production dependencies (without vite)
 COPY --from=deps --chown=nextjs:nodejs /app/node_modules ./node_modules
 COPY --from=build --chown=nextjs:nodejs /app/dist ./dist
 COPY --from=build --chown=nextjs:nodejs /app/package.json ./package.json
