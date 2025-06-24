@@ -41,18 +41,29 @@ export default function Confirmation() {
       localStorage.setItem('sessionId', sessionId);
 
       // First join contest if not already joined
-      const joinResponse = await apiRequest(`/api/contest/${contest?.id}/join`, {
+      const joinResponse = await fetch(`/api/contest/${contest?.id}/join`, {
         method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
         body: JSON.stringify({
           sessionId,
           name: `Player_${Math.random().toString(36).substr(2, 6)}`
         })
       });
+      
+      if (!joinResponse.ok) {
+        throw new Error('Failed to join contest');
+      }
+      
       const participant = await joinResponse.json();
 
       // Submit selections
-      await apiRequest(`/api/participant/${participant.id}/selections`, {
+      const submitResponse = await fetch(`/api/participant/${participant.id}/selections`, {
         method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
         body: JSON.stringify({
           selections: selections.map(s => ({
             questionId: s.questionId,
@@ -60,6 +71,10 @@ export default function Confirmation() {
           }))
         })
       });
+      
+      if (!submitResponse.ok) {
+        throw new Error('Failed to submit selections');
+      }
 
       return participant;
     },
@@ -80,21 +95,6 @@ export default function Confirmation() {
     }
   });
 
-  if (selectedQuestions.length !== 5) {
-    return (
-      <div className="min-h-screen flex items-center justify-center p-6">
-        <div className="text-center">
-          <AlertTriangle className="w-12 h-12 text-warning mx-auto mb-4" />
-          <p className="text-gray-600 mb-4">You must select exactly 5 questions</p>
-          <Button onClick={() => setLocation('/opinion-selection')} variant="outline">
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Selection
-          </Button>
-        </div>
-      </div>
-    );
-  }
-
   const selectedQuestionsData = questions?.filter(q => selectedQuestions.includes(q.id)) || [];
   const selections = getSelectedQuestionsWithChoices();
   const maxPoints = selectedQuestionsData.length * 100;
@@ -103,6 +103,13 @@ export default function Confirmation() {
   const handleConfirm = () => {
     if (selections.length === 5) {
       submitMutation.mutate(selections);
+    } else {
+      toast({
+        title: "Invalid Selection",
+        description: `Please select exactly 5 questions. You have ${selections.length} selected.`,
+        variant: "destructive",
+      });
+      setLocation('/opinion-selection');
     }
   };
 
