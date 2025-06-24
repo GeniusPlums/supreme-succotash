@@ -106,6 +106,11 @@ Changelog:
   * Added real-time updates with automatic polling
   * Protected all CMS routes with bearer token authentication
   * Removed public access to CMS from landing page
+- June 24, 2025. Fixed selection validation and submission flow:
+  * Implemented localStorage persistence for question selections
+  * Resolved React hooks order errors in confirmation page
+  * Fixed API request syntax in confirmation submission
+  * Added proper error handling for contest join and selection submission
 
 ## User Preferences
 

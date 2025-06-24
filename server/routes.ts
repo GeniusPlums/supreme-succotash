@@ -49,10 +49,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       };
 
       const participant = await storage.createParticipant(participantData);
+      
       await storage.updateContestParticipants(contestId, 1);
       
       res.json(participant);
     } catch (error) {
+      console.error('Join contest error:', error);
       res.status(500).json({ error: "Failed to join contest" });
     }
   });
