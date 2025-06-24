@@ -131,8 +131,49 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // CMS Authentication middleware
+  const cmsAuth = (req: any, res: any, next: any) => {
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return res.status(401).json({ error: 'Authentication required' });
+    }
+    
+    const token = authHeader.substring(7);
+    // Simple token validation (you could enhance this with JWT)
+    if (token !== 'cms_authenticated_token_2024') {
+      return res.status(401).json({ error: 'Invalid token' });
+    }
+    
+    next();
+  };
+
+  // CMS Login
+  app.post("/api/cms/login", async (req, res) => {
+    try {
+      const { username, password } = req.body;
+      
+      // Simple authentication (you can enhance this with database storage)
+      if (username === 'admin' && password === 'cms2024!') {
+        res.json({ 
+          success: true, 
+          token: 'cms_authenticated_token_2024',
+          message: 'Login successful'
+        });
+      } else {
+        res.status(401).json({ error: 'Invalid credentials' });
+      }
+    } catch (error) {
+      res.status(500).json({ error: 'Login failed' });
+    }
+  });
+
+  // CMS Token verification
+  app.get("/api/cms/verify", cmsAuth, async (req, res) => {
+    res.json({ valid: true });
+  });
+
   // CMS: Get all contests
-  app.get("/api/cms/contests", async (req, res) => {
+  app.get("/api/cms/contests", cmsAuth, async (req, res) => {
     try {
       const contests = await storage.getAllContests();
       res.json(contests);
@@ -142,7 +183,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // CMS: Create contest
-  app.post("/api/cms/contests", async (req, res) => {
+  app.post("/api/cms/contests", cmsAuth, async (req, res) => {
     try {
       const contestData = insertContestSchema.parse(req.body);
       const contest = await storage.createContest(contestData);
@@ -156,7 +197,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // CMS: Update contest
-  app.put("/api/cms/contests/:id", async (req, res) => {
+  app.put("/api/cms/contests/:id", cmsAuth, async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       const contestData = insertContestSchema.partial().parse(req.body);
@@ -171,7 +212,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // CMS: Get all questions
-  app.get("/api/cms/questions", async (req, res) => {
+  app.get("/api/cms/questions", cmsAuth, async (req, res) => {
     try {
       const questions = await storage.getAllQuestions();
       res.json(questions);
@@ -181,7 +222,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // CMS: Create question
-  app.post("/api/cms/questions", async (req, res) => {
+  app.post("/api/cms/questions", cmsAuth, async (req, res) => {
     try {
       const questionData = insertQuestionSchema.parse(req.body);
       const question = await storage.createQuestion(questionData);
@@ -195,7 +236,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // CMS: Update question
-  app.put("/api/cms/questions/:id", async (req, res) => {
+  app.put("/api/cms/questions/:id", cmsAuth, async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       const questionData = insertQuestionSchema.partial().parse(req.body);
@@ -210,7 +251,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // CMS: Delete question
-  app.delete("/api/cms/questions/:id", async (req, res) => {
+  app.delete("/api/cms/questions/:id", cmsAuth, async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       await storage.deleteQuestion(id);

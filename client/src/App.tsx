@@ -11,6 +11,7 @@ import Confirmation from "@/pages/confirmation";
 import Leaderboard from "@/pages/leaderboard";
 import Admin from "@/pages/admin";
 import CMS from "@/pages/cms";
+import CMSLogin from "@/pages/cms-login";
 
 function Router() {
   return (
@@ -21,6 +22,7 @@ function Router() {
       <Route path="/confirmation" component={Confirmation} />
       <Route path="/leaderboard" component={Leaderboard} />
       <Route path="/admin" component={Admin} />
+      <Route path="/cms-login" component={CMSLogin} />
       <Route path="/cms" component={CMS} />
       <Route component={NotFound} />
     </Switch>

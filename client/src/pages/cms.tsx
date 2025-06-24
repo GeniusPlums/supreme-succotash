@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { useLocation } from 'wouter';
 import { Button } from '@/components/ui/button';
@@ -34,32 +34,77 @@ export default function CMS() {
   const [showQuestionDialog, setShowQuestionDialog] = useState(false);
   const [showContestDialog, setShowContestDialog] = useState(false);
 
-  // Fetch contests
+  // Check authentication
+  useEffect(() => {
+    const token = localStorage.getItem('cms_token');
+    if (!token) {
+      setLocation('/cms-login');
+      return;
+    }
+    
+    // Verify token validity
+    fetch('/api/cms/verify', {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    }).then(response => {
+      if (!response.ok) {
+        localStorage.removeItem('cms_token');
+        setLocation('/cms-login');
+      }
+    });
+  }, [setLocation]);
+
+  const handleLogout = () => {
+    localStorage.removeItem('cms_token');
+    setLocation('/cms-login');
+  };
+
+  // Fetch contests with auth
   const { data: contests, isLoading: contestsLoading } = useQuery({
     queryKey: ['/api/cms/contests'],
     queryFn: async () => {
-      const response = await fetch('/api/cms/contests');
+      const token = localStorage.getItem('cms_token');
+      const response = await fetch('/api/cms/contests', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
       if (!response.ok) throw new Error('Failed to fetch contests');
       return response.json();
-    }
+    },
+    refetchInterval: 5000 // Refetch every 5 seconds for real-time updates
   });
 
-  // Fetch questions for active contest
+  // Fetch questions with auth and real-time updates
   const { data: questions, isLoading: questionsLoading } = useQuery({
     queryKey: ['/api/cms/questions'],
     queryFn: async () => {
-      const response = await fetch('/api/cms/questions');
+      const token = localStorage.getItem('cms_token');
+      const response = await fetch('/api/cms/questions', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
       if (!response.ok) throw new Error('Failed to fetch questions');
       return response.json();
-    }
+    },
+    refetchInterval: 2000 // Refetch every 2 seconds for real-time updates
   });
 
   // Create/Update Question Mutation
   const questionMutation = useMutation({
     mutationFn: async (data: { question: InsertQuestion; isEdit: boolean; id?: number }) => {
+      const token = localStorage.getItem('cms_token');
       const url = data.isEdit ? `/api/cms/questions/${data.id}` : '/api/cms/questions';
       const method = data.isEdit ? 'PUT' : 'POST';
-      return apiRequest(url, { method, body: JSON.stringify(data.question) });
+      return apiRequest(url, { 
+        method, 
+        body: JSON.stringify(data.question),
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/cms/questions'] });
@@ -75,7 +120,13 @@ export default function CMS() {
   // Delete Question Mutation
   const deleteQuestionMutation = useMutation({
     mutationFn: async (id: number) => {
-      return apiRequest(`/api/cms/questions/${id}`, { method: 'DELETE' });
+      const token = localStorage.getItem('cms_token');
+      return apiRequest(`/api/cms/questions/${id}`, { 
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/cms/questions'] });
@@ -89,9 +140,16 @@ export default function CMS() {
   // Create/Update Contest Mutation
   const contestMutation = useMutation({
     mutationFn: async (data: { contest: InsertContest; isEdit: boolean; id?: number }) => {
+      const token = localStorage.getItem('cms_token');
       const url = data.isEdit ? `/api/cms/contests/${data.id}` : '/api/cms/contests';
       const method = data.isEdit ? 'PUT' : 'POST';
-      return apiRequest(url, { method, body: JSON.stringify(data.contest) });
+      return apiRequest(url, { 
+        method, 
+        body: JSON.stringify(data.contest),
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/cms/contests'] });
@@ -171,6 +229,9 @@ export default function CMS() {
                 <h1 className="text-xl font-semibold text-gray-900">Content Management System</h1>
               </div>
             </div>
+            <Button variant="outline" onClick={handleLogout} className="text-red-600 border-red-200 hover:bg-red-50">
+              Logout
+            </Button>
           </div>
         </div>
       </div>
