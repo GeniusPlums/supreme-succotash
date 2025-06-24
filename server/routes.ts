@@ -5,6 +5,26 @@ import { insertParticipantSchema, insertQuestionSchema, insertContestSchema } fr
 import { z } from "zod";
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Health check endpoint for production monitoring
+  app.get("/api/health", async (req, res) => {
+    try {
+      // Basic health check - you can add database ping here
+      const health = {
+        status: "healthy",
+        timestamp: new Date().toISOString(),
+        uptime: process.uptime(),
+        environment: process.env.NODE_ENV || "development"
+      };
+      res.json(health);
+    } catch (error) {
+      res.status(503).json({ 
+        status: "unhealthy", 
+        timestamp: new Date().toISOString(),
+        error: "Health check failed"
+      });
+    }
+  });
+
   // Get active contest
   app.get("/api/contest", async (req, res) => {
     try {
